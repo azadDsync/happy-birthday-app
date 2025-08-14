@@ -20,12 +20,36 @@ body,
   overflow: hidden;
   background: #010101;
 }
- #root {
+
+#root {
   overflow: hidden;
   background: rgb(0, 0, 0);
   width: 100%;
   height: 100%;
- }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  html,
+  body,
+  #root {
+    height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height on mobile */
+    position: fixed;
+    width: 100vw;
+  }
+  
+  canvas {
+    touch-action: pan-x pan-y;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  canvas {
+    touch-action: pan-x pan-y;
+  }
+}
 
 /* Commented out styles
 body {

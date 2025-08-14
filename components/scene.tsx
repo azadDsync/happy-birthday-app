@@ -1,20 +1,49 @@
 import { useTexture, useAspect, Plane } from "@react-three/drei";
-import bgUrl from "@/resources/bg.jpg";
-import starsUrl from "@/resources/stars.png";
-import groundUrl from "@/resources/ground.png";
-import bearUrl from "@/resources/bear.png";
-import leaves1Url from "@/resources/leaves1.png";
-import leaves2Url from "@/resources/leaves2.png";
-import { useRef, useState } from "react";
+
+import { useRef, useState, useEffect } from "react";
 import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import Fireflies from "./fire-flies";
 import BirthdayText from "./birthday-text";
 import "@/materials/layerMaterial";
 
 export default function Scene() {
-  const scaleN = useAspect(1600, 1000, 1.05);
-  const scaleW = useAspect(2200, 1000, 1.05);
+  const { viewport } = useThree();
+  const [screenSize, setScreenSize] = useState('desktop');
+  
+  // Responsive scaling based on screen size
+  const getResponsiveScale = () => {
+    if (typeof window !== 'undefined') {
+      const width = window.innerWidth;
+      if (width < 768) return 'mobile';
+      if (width < 1024) return 'tablet';
+      return 'desktop';
+    }
+    return 'desktop';
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenSize(getResponsiveScale());
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Dynamic scaling based on viewport and screen size
+  const getScaleMultiplier = () => {
+    switch (screenSize) {
+      case 'mobile': return 0.4; // Even smaller for mobile - clouds, grass, flowers will be much smaller
+      case 'tablet': return 0.8;
+      default: return 1.0;
+    }
+  };
+
+  const scaleMultiplier = getScaleMultiplier();
+  const scaleN = useAspect(1600 * scaleMultiplier, 1000 * scaleMultiplier, 1.05);
+  const scaleW = useAspect(2200 * scaleMultiplier, 1000 * scaleMultiplier, 1.05);
   const group = useRef<THREE.Group>(null!);
   const layersRef = useRef<any[]>([]);
   const [movement] = useState(() => new THREE.Vector3());
@@ -58,16 +87,19 @@ export default function Scene() {
     },
   ];
    useFrame((state, delta) => {
-    movement.lerp(temp.set(state.mouse.x, state.mouse.y * 0.1, 0), 0.15)
-    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, state.mouse.x * 8, 0.15)
+    // Reduced mouse movement effect on mobile for better performance
+    const mouseSensitivity = screenSize === 'mobile' ? 0.3 : 1.0;
+    
+    movement.lerp(temp.set(state.mouse.x * mouseSensitivity, state.mouse.y * 0.1 * mouseSensitivity, 0), 0.15)
+    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, state.mouse.x * 8 * mouseSensitivity, 0.15)
     group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, state.mouse.y / 25, 0.15)
-    group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, -state.mouse.x / 8, 0.15)
+    group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, -state.mouse.x / 8 * mouseSensitivity, 0.15)
     layersRef.current[4].uniforms.time.value = layersRef.current[5].uniforms.time.value += delta
   }, 1)
 
   return (
     <group ref={group}>
-      <Fireflies count={20} radius={80} colors={['blue']} />
+      {/* <Fireflies count={20} radius={80} colors={['blue']} /> */}
       {layers.map(
         ({ scale, texture, factor = 0, scaleFactor = 1, wiggle = 0, z }, i) => (
           <Plane
@@ -89,7 +121,7 @@ export default function Scene() {
       )}
 
       {/* 3D Birthday Text positioned between grass layers */}
-      <BirthdayText />
+      <BirthdayText screenSize={screenSize} />
     </group>
   );
 }

@@ -4,10 +4,64 @@ import { useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 
-export default function BirthdayText() {
+interface BirthdayTextProps {
+  screenSize: string;
+}
+
+export default function BirthdayText({ screenSize }: BirthdayTextProps) {
   const titleRef = useRef<THREE.Group>(null!);
   const wishRef = useRef<THREE.Group>(null!);
   const [time, setTime] = useState(0);
+
+  // Responsive configurations
+  const getResponsiveConfig = () => {
+    switch (screenSize) {
+      case 'mobile':
+        return {
+          titleFontSize: 8,  
+          nameFontSize: 5,   
+          wishFontSize: 6,   
+          titlePosition: [0, 57, 25] as [number, number, number],
+          namePosition: [0, -3, 0.5] as [number, number, number], 
+          wishPosition: [0, -15, 2] as [number, number, number], 
+          wishMaxWidth: 100, // Reduced width for mobile
+          baseY: 8,
+          titleAnchor: "center" as const,
+          nameAnchor: "center" as const,
+          wishAnchor: "center" as const
+        };
+      case 'tablet':
+        return {
+          titleFontSize: 16,
+          nameFontSize: 10,
+          wishFontSize: 10,
+          titlePosition: [-70, 65, 25] as [number, number, number],
+          namePosition: [55, -1, 0.5] as [number, number, number],
+          wishPosition: [40, -16, 1] as [number, number, number],
+          wishMaxWidth: 80,
+          baseY: 12,
+          titleAnchor: "left" as const,
+          nameAnchor: "left" as const,
+          wishAnchor: "left" as const
+        };
+      default: // desktop
+        return {
+          titleFontSize: 20,
+          nameFontSize: 10,
+          wishFontSize: 10,
+          titlePosition: [0, 15, 25] as [number, number, number],
+          namePosition: [60, -1, 0.5] as [number, number, number],
+          wishPosition: [30, -20, 1] as [number, number, number],
+          wishMaxWidth: 500,
+          baseY: 15,
+          titleAnchor: "left" as const,
+          nameAnchor: "left" as const,
+          wishAnchor: "left" as const
+        };
+    }
+  };
+
+  const config = getResponsiveConfig();
 
   useFrame((state, delta) => {
     setTime(time + delta);
@@ -20,20 +74,20 @@ export default function BirthdayText() {
     
     // Gentle floating for wish text
     if (wishRef.current) {
-      wishRef.current.position.y = -20 + Math.sin(time * 0.4 + 1) * 0.2;
+      wishRef.current.position.y = config.wishPosition[1] + Math.sin(time * 0.4 + 1) * 0.2;
     }
   });
 
   return (
-    <group position={[0, 15, 25]}>
+    <group position={config.titlePosition}>
       {/* Main Birthday Title - Positioned higher on screen */}
       <group ref={titleRef} position={[0, 0, 0]}>
         <Center>
           <Text
             font="/fonts/Shine Monday.otf"
-            fontSize={20}
+            fontSize={config.titleFontSize}
             color="#FF6B35"
-            anchorX="left"
+            anchorX={config.titleAnchor}
             anchorY="bottom"
             outlineWidth={0.3}
             outlineColor="#8B4513"
@@ -52,13 +106,13 @@ export default function BirthdayText() {
       </group>
 
       {/* Name - Better spacing from title */}
-      <group position={[60, -1, 0.5]}>
+      <group position={config.namePosition}>
         <Center>
           <Text
             font="/fonts/Shine Monday.otf"
-            fontSize={10}
+            fontSize={config.nameFontSize}
             color="#DC143C"
-            anchorX="left"
+            anchorX={config.nameAnchor}
             anchorY="top"
             textAlign="center"
             outlineWidth={0.22}
@@ -78,16 +132,16 @@ export default function BirthdayText() {
       </group>
 
       {/* Wish Text - Positioned lower with proper spacing */}
-      <group ref={wishRef} position={[30, -20, 1]}>
+      <group ref={wishRef} position={config.wishPosition}>
         <Center>
           <Text
             font="/fonts/Simple Thursday.otf"
-            fontSize={10}
+            fontSize={config.wishFontSize}
             color="#2F4F4F"
-            anchorX="left"
+            anchorX={config.wishAnchor}
             anchorY="top"
             textAlign="center"
-            maxWidth={500}
+            maxWidth={config.wishMaxWidth}
             outlineWidth={0.12}
             outlineColor="#FFFFFF"
             letterSpacing={0.05}

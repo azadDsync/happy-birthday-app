@@ -17,6 +17,7 @@ const simpleThursday = localFont({
 export const metadata: Metadata = {
   title: "Happy Birthday Rahul",
   description: "A special birthday celebration",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
 };
 
 export default function RootLayout({
@@ -26,7 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${shineMonday.variable} ${simpleThursday.variable}`}>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+      </head>
+      <body className={`${shineMonday.variable} ${simpleThursday.variable} overflow-hidden`}>
         {children}
       </body>
     </html>
